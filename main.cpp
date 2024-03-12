@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-#include <stdio.h>
 #define MAX_INSTRUCTION_LENGTH 1024
 #define ASSIGN "assign"
 #define PRINT "print"
