@@ -127,8 +127,15 @@ int main()
     FILE *sourceFile = fopen("sourceProgram.txt", "r");
     char line[MAX_INSTRUCTION_LENGTH];
     Scope *currScope = NULL;
+    bool error = false;
 
-    while (fgets(line, sizeof(line), sourceFile))
+    if(!sourceFile)
+    {
+        cout << "Kernel is busy" << endl;
+        return 0;
+    }
+
+    while (!error && fgets(line, sizeof(line), sourceFile))
     {
         line[strlen(line) - 1] = '\0';
 
@@ -139,7 +146,19 @@ int main()
             currScope = newScope;
         }
         else if (strstr(line, ASSIGN))
-            currScope->symbolTable.insert(fetchVariableName(line, (char *)ASSIGN), fetchVariableValue(line));
+        {
+            if (currScope == NULL)
+            {
+                cout << "Error: Variable declaration outside scope" << endl;
+                error = true;
+            }
+            else
+            {
+                bool status = currScope->symbolTable.insert(fetchVariableName(line, (char *)ASSIGN), fetchVariableValue(line));
+                if (status == false)
+                    error = true;
+            }
+        }
         else if (strstr(line, PRINT))
         {
             string varName = fetchVariableName(line, (char *)PRINT);
@@ -154,14 +173,23 @@ int main()
             {
                 cout << "error: "
                      << "'" << varName << "'"
-                     << " was not declared in this scope" << endl;
+                     << " is undeclared" << endl;
+                error = true;
             }
         }
         else
         {
-            Scope *deadScope = currScope;
-            currScope = currScope->enclosingScope;
-            delete deadScope;
+            if (!currScope)
+            {
+                error = true;
+                cout << "Redundant 'end' detected" << endl;
+            }
+            else
+            {
+                Scope *deadScope = currScope;
+                currScope = currScope->enclosingScope;
+                delete deadScope;
+            }
         }
     }
     fclose(sourceFile);
