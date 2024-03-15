@@ -11,7 +11,7 @@ using namespace std;
 class Map
 {
 private:
-    pair<string, int> *arr;
+    pair<string, int> *data;
     int size;
     int capacity;
 
@@ -27,9 +27,9 @@ Map ::Map(int cap = CAPACITY) : capacity(cap)
 {
 
     size = 0;
-    arr = new pair<string, int>[capacity];
+    data = new pair<string, int>[capacity];
     for (int i = 0; i < capacity; i++)
-        arr[i] = {"", INT_MIN};
+        data[i] = {"", INT_MIN};
 }
 
 int Map ::hash(string key)
@@ -49,9 +49,9 @@ bool Map ::search(string key)
     int h = hash(key);
     int i = h;
 
-    while (arr[i].first != "")
+    while (data[i].first != "")
     {
-        if (arr[i].first == key)
+        if (data[i].first == key)
             return true;
         i = (i + 1) % capacity;
         if (i == h)
@@ -60,24 +60,24 @@ bool Map ::search(string key)
     return false;
 }
 
-bool Map::insert(string key, int val)
+bool Map ::insert(string key, int val)
 {
     if (size == capacity)
         return false;
 
     int i = hash(key);
 
-    while (arr[i].first != "" && arr[i].first != key)
+    while (data[i].first != "" && data[i].first != key)
         i = (i + 1) % capacity;
 
-    if (arr[i].first == key)
+    if (data[i].first == key)
     {
         cout << "'" << key << "' already exists" << endl;
         return false;
     }
     else
     {
-        arr[i] = {key, val};
+        data[i] = {key, val};
         size++;
         return true;
     }
@@ -86,7 +86,7 @@ bool Map::insert(string key, int val)
 int Map ::getValue(string key)
 {
     int h = hash(key);
-    return arr[h].second;
+    return data[h].second;
 }
 
 typedef struct Scope
@@ -102,7 +102,7 @@ Scope *createScope()
     return newScope;
 }
 
-string fetchVariableName(char *line, char *instruction)
+string extractVariableName(char *line, char *instruction)
 {
     char *p = strstr(line, instruction);
     p = p + strlen(instruction) + 1;
@@ -114,7 +114,7 @@ string fetchVariableName(char *line, char *instruction)
     return name;
 }
 
-int fetchVariableValue(char *line)
+int extractVariableValue(char *line)
 {
     int i = strlen(line) - 1;
     while (line[i] != ' ')
@@ -154,14 +154,14 @@ int main()
             }
             else
             {
-                bool status = currScope->symbolTable.insert(fetchVariableName(line, (char *)ASSIGN), fetchVariableValue(line));
+                bool status = currScope->symbolTable.insert(extractVariableName(line, (char *)ASSIGN), extractVariableValue(line));
                 if (status == false)
                     error = true;
             }
         }
         else if (strstr(line, PRINT))
         {
-            string varName = fetchVariableName(line, (char *)PRINT);
+            string varName = extractVariableName(line, (char *)PRINT);
             Scope *scope = currScope;
 
             while (scope && scope->symbolTable.search(varName) == false)
